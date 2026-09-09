@@ -216,6 +216,27 @@ class AuthApiTest extends TestCase
             ->assertUnauthorized();
     }
 
+    public function test_session_status_is_public_and_returns_the_authenticated_user_when_present(): void
+    {
+        $this->asSpa()
+            ->getJson('/api/auth/session')
+            ->assertOk()
+            ->assertJsonPath('user', null);
+
+        $user = User::factory()->create([
+            'email' => 'session@example.com',
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($user);
+
+        $this->asSpa()
+            ->getJson('/api/auth/session')
+            ->assertOk()
+            ->assertJsonPath('user.email', 'session@example.com')
+            ->assertJsonMissingPath('user.password');
+    }
+
     public function test_authenticated_customer_can_logout(): void
     {
         $user = User::factory()->create([

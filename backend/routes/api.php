@@ -127,6 +127,14 @@ Route::middleware(
     );
 });
 
+Route::get(
+    '/auth/session',
+    [
+        AuthController::class,
+        'sessionStatus',
+    ]
+)->middleware('throttle:120,1');
+
 /*
 |--------------------------------------------------------------------------
 | Authentication - Authenticated

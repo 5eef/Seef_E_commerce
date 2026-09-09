@@ -98,6 +98,18 @@ class AuthController extends Controller
         ]);
     }
 
+    public function sessionStatus(): JsonResponse
+    {
+        /** @var User|null $user */
+        $user = Auth::guard('web')->user();
+
+        return response()->json([
+            'user' => $user?->isActive()
+                ? new UserResource($user)
+                : null,
+        ]);
+    }
+
     public function logout(Request $request): JsonResponse
     {
         Auth::guard('web')->logout();

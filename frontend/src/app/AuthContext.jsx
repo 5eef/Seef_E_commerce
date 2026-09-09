@@ -8,10 +8,10 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     let active = true
-    api.get('/auth/me')
+    api.get('/auth/session')
       .then((payload) => active && setUser(payload.user))
       .catch((error) => {
-        if (active && error.status !== 401) console.error(error)
+        if (active) console.error(error)
       })
       .finally(() => active && setLoading(false))
 
