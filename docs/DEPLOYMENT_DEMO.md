@@ -1,6 +1,6 @@
 # Demo Deployment Guide
 
-This guide describes the target portfolio deployment for Seef E-commerce. It does not claim that the application is currently deployed.
+This guide covers an immediately usable free preview and the persistent portfolio target. Only put a public URL in the README after its health, catalogue, and authentication smoke tests pass.
 
 ## Target Architecture
 
@@ -9,7 +9,8 @@ flowchart LR
     GitHub[GitHub · main branch] --> Koyeb[Koyeb web service]
     Koyeb --> Laravel[Laravel REST API]
     Koyeb --> React[React production assets]
-    Laravel --> TiDB[(TiDB Cloud Starter)]
+    Laravel --> Preview[(Ephemeral SQLite preview)]
+    Laravel -. persistent target .-> TiDB[(TiDB Cloud Starter)]
 ```
 
 The repository is a monorepo with `backend/` and `frontend/`. Koyeb supports selecting a work directory for monorepos. The included root `Dockerfile` implements the single-service option:
@@ -21,7 +22,24 @@ The repository is a monorepo with `backend/` and `frontend/`. Koyeb supports sel
 
 This approach uses a single free Koyeb Web Service. The alternative is to deploy Laravel from `backend/` and host React as a separate static service.
 
-## 1. Create the TiDB Cloud Database
+## 1. Choose the Database Mode
+
+### Immediate free preview
+
+The container can start without an external database. Configure these variables for a zero-cost first deployment:
+
+```dotenv
+DB_CONNECTION=sqlite
+DB_DATABASE=/var/www/html/database/database.sqlite
+CACHE_STORE=database
+SESSION_DRIVER=database
+QUEUE_CONNECTION=sync
+SEED_DEMO_DATA=true
+```
+
+The entrypoint creates the SQLite file, runs migrations, and loads the idempotent demo seeders. This makes the catalogue and both demo accounts usable immediately. Koyeb free-instance storage is ephemeral, so catalogue or account changes made through the demo can be lost after a restart or rescheduling; the seed data is recreated at the next start.
+
+### Persistent TiDB Cloud target
 
 1. Create a TiDB Cloud Starter instance.
 2. Create a dedicated database for Seef.
@@ -95,7 +113,7 @@ Generate `APP_KEY` locally without publishing it:
 php artisan key:generate --show
 ```
 
-Add the TiDB variables from the previous section as Koyeb secrets.
+For the immediate preview, add the SQLite variables from section 1. For a persistent deployment, add the TiDB variables as Koyeb secrets instead.
 
 ## 4. Configure React
 
@@ -149,7 +167,7 @@ After deployment, verify:
 
 ## Storage Limitation
 
-Koyeb free instances use ephemeral local storage and cannot attach a persistent volume. Product uploads stored on the local `public` disk can disappear after a restart or rescheduling. Use external seeded images for the initial portfolio demo and move real uploads to object storage before production.
+Koyeb free instances use ephemeral local storage and cannot attach a persistent volume. The preview SQLite database and product uploads stored on the local `public` disk can disappear after a restart or rescheduling. The idempotent seeders restore the public catalogue and demo accounts, while external seeded images remain available. Use TiDB and object storage when persistence is required.
 
 See [Koyeb instance limitations](https://www.koyeb.com/docs/reference/instances) and [Koyeb volume limitations](https://www.koyeb.com/docs/reference/volumes).
 

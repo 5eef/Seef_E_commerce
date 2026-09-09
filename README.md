@@ -328,10 +328,11 @@ flowchart LR
     GitHub[GitHub repository] --> Koyeb[Koyeb free web service]
     Koyeb --> Laravel[Laravel API]
     Koyeb --> React[React production build]
-    Laravel --> TiDB[(TiDB Cloud Starter)]
+    Laravel --> Preview[(SQLite free preview)]
+    Laravel -. persistent target .-> TiDB[(TiDB Cloud Starter)]
 ```
 
-Koyeb's free service is intended for portfolio demonstration only. Local uploads are not persistent on a free instance without a volume; external seeded images remain suitable for the catalogue demo.
+Koyeb's free service is intended for portfolio demonstration only. The initial SQLite preview and local uploads are not persistent on a free instance without a volume; idempotent seeders restore the catalogue and demo accounts, while TiDB remains the persistent database target.
 
 Detailed deployment guide: [docs/DEPLOYMENT_DEMO.md](docs/DEPLOYMENT_DEMO.md)
 
