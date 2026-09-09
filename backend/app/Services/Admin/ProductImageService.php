@@ -91,9 +91,8 @@ class ProductImageService
                 }
             );
         } catch (Throwable $exception) {
-            Storage::disk(
-                self::DISK
-            )->delete(
+            $this->deleteStoredFile(
+                self::DISK,
                 $path
             );
 
@@ -225,9 +224,8 @@ class ProductImageService
             );
         } catch (Throwable $exception) {
             if ($newPath !== null) {
-                Storage::disk(
-                    self::DISK
-                )->delete(
+                $this->deleteStoredFile(
+                    self::DISK,
                     $newPath
                 );
             }
@@ -242,9 +240,8 @@ class ProductImageService
                 || $oldPath !== $newPath
             )
         ) {
-            Storage::disk(
-                $oldDisk
-            )->delete(
+            $this->deleteStoredFile(
+                $oldDisk,
                 $oldPath
             );
         }
@@ -296,10 +293,18 @@ class ProductImageService
             }
         );
 
-        Storage::disk(
-            $disk
-        )->delete(
+        $this->deleteStoredFile(
+            $disk,
             $path
         );
+    }
+
+    private function deleteStoredFile(string $disk, string $path): void
+    {
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return;
+        }
+
+        Storage::disk($disk)->delete($path);
     }
 }

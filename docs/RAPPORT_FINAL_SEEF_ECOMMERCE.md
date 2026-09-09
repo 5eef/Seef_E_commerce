@@ -50,7 +50,7 @@ Sanctum, CSRF, CORS avec credentials, rate limiting, FormRequests, Policies, Res
 
 ## 10. Tests
 
-Une suite ciblée de 7 tests / 41 assertions couvre les nouvelles fonctions principales. La suite complète passe avec 200 tests et 974 assertions.
+Une suite ciblée de 8 tests / 46 assertions couvre les nouvelles fonctions principales. La suite complète passe avec 201 tests et 979 assertions.
 
 ## 11. Commandes exécutées
 
@@ -59,7 +59,7 @@ Une suite ciblée de 7 tests / 41 assertions couvre les nouvelles fonctions prin
 ## 12. Résultats
 
 - Tests backend ciblés : **PASS — 7 tests, 41 assertions**
-- Suite backend complète : **PASS — 200 tests, 974 assertions**
+- Suite backend complète : **PASS — 201 tests, 979 assertions**
 - Build frontend : **PASS**
 - ESLint frontend : **PASS**
 - Laravel Pint : **PASS**
@@ -74,7 +74,6 @@ Une suite ciblée de 7 tests / 41 assertions couvre les nouvelles fonctions prin
 - connecteur du fichier Figma Make inaccessible faute de droit éditeur; inspection fondée sur le site public fourni
 - rendu visuel des DOCX impossible sans LibreOffice; contenu lu structurellement sans modifier les originaux
 - plusieurs factories secondaires restent des squelettes
-- les images seedées utilisent `disk = external` alors qu’aucun disque Laravel `external` n’est configuré ; le storefront lit leurs URL, mais la Resource admin d’image doit être adaptée avant une démonstration admin complète
 
 ## 14. Recommandations de déploiement
 

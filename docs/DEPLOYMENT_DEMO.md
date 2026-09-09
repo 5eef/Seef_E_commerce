@@ -12,12 +12,14 @@ flowchart LR
     Laravel --> TiDB[(TiDB Cloud Starter)]
 ```
 
-The repository is a monorepo with `backend/` and `frontend/`. Koyeb supports selecting a work directory for monorepos. A production deployment must either:
+The repository is a monorepo with `backend/` and `frontend/`. Koyeb supports selecting a work directory for monorepos. The included root `Dockerfile` implements the single-service option:
 
-1. package Laravel and the compiled React application in one Docker image; or
-2. deploy Laravel from `backend/` and host the React build as a separate static service.
+1. Node builds the React SPA with the same-origin API base `/api`;
+2. Composer installs production PHP dependencies;
+3. Apache serves the React assets and forwards Laravel/API requests;
+4. the entrypoint migrates the database and optionally loads demo seed data.
 
-The repository does not yet contain the production Dockerfile or reverse-proxy configuration required for the first option. Add and validate that packaging before enabling automatic deployment.
+This approach uses a single free Koyeb Web Service. The alternative is to deploy Laravel from `backend/` and host React as a separate static service.
 
 ## 1. Create the TiDB Cloud Database
 
@@ -53,9 +55,9 @@ Official references:
 
 1. Connect Koyeb to the GitHub account `5eef`.
 2. Select the `5eef/Seef_E_commerce` repository and the `main` branch.
-3. Choose a Git-driven deployment.
+3. Choose a Git-driven deployment with the root `Dockerfile` builder.
 4. Select a free Web Service only for the portfolio demo.
-5. Configure the monorepo work directory or the future root Dockerfile.
+5. Keep the repository root as the work directory and expose HTTP port `8000`.
 6. Disable automatic production deployment until the first staging build is validated.
 
 Official references:
@@ -82,8 +84,9 @@ SESSION_SECURE_COOKIE=true
 LOG_CHANNEL=stderr
 CACHE_STORE=database
 SESSION_DRIVER=database
-QUEUE_CONNECTION=database
-FILESYSTEM_DISK=public
+QUEUE_CONNECTION=sync
+FILESYSTEM_DISK=local
+SEED_DEMO_DATA=true
 ```
 
 Generate `APP_KEY` locally without publishing it:
@@ -152,8 +155,6 @@ See [Koyeb instance limitations](https://www.koyeb.com/docs/reference/instances)
 
 ## Known Pre-deployment Work
 
-- Add a production Dockerfile or split frontend/backend services.
-- Resolve the seeded `external` image disk compatibility in the admin image resource.
 - Configure object storage for persistent uploads.
 - Add a real payment gateway only with signed, idempotent webhooks.
 - Add production monitoring, backups, and an explicit rollback procedure.

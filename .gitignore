@@ -7,6 +7,7 @@
 
 # environnements/outils locaux
 .docxvenv/
+.tools/
 
 # configurations locales des assistants de développement
 backend/.agents/

@@ -11,8 +11,9 @@ class AdminProductImageResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        /** @var FilesystemAdapter $disk */
-        $disk = Storage::disk($this->disk);
+        $url = filter_var($this->path, FILTER_VALIDATE_URL)
+            ? $this->path
+            : $this->storedUrl();
 
         return [
             'id' => $this->id,
@@ -21,7 +22,7 @@ class AdminProductImageResource extends JsonResource
             'disk' => $this->disk,
             'path' => $this->path,
 
-            'url' => $disk->url($this->path),
+            'url' => $url,
 
             'alt_text' => $this->alt_text,
             'sort_order' => $this->sort_order,
@@ -30,5 +31,13 @@ class AdminProductImageResource extends JsonResource
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];
+    }
+
+    private function storedUrl(): string
+    {
+        /** @var FilesystemAdapter $disk */
+        $disk = Storage::disk($this->disk);
+
+        return $disk->url($this->path);
     }
 }

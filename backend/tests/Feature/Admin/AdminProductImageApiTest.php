@@ -311,6 +311,35 @@ class AdminProductImageApiTest extends TestCase
             );
     }
 
+    public function test_admin_can_manage_seeded_external_image(): void
+    {
+        $this->actingAsAdmin();
+
+        $product = $this->createProduct();
+        $url = 'https://images.example.test/demo-product.jpg';
+        $image = $product->images()->create([
+            'disk' => 'external',
+            'path' => $url,
+            'alt_text' => 'External demo image',
+            'sort_order' => 0,
+            'is_primary' => true,
+        ]);
+
+        $this->getJson(
+            "/api/admin/products/{$product->id}/images/{$image->id}"
+        )
+            ->assertOk()
+            ->assertJsonPath('data.url', $url);
+
+        $this->deleteJson(
+            "/api/admin/products/{$product->id}/images/{$image->id}"
+        )->assertNoContent();
+
+        $this->assertDatabaseMissing('product_images', [
+            'id' => $image->id,
+        ]);
+    }
+
     public function test_admin_can_update_image_metadata_and_make_it_primary(): void
     {
         $this->actingAsAdmin();

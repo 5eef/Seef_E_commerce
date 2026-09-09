@@ -6,7 +6,7 @@ Seef E-commerce is an API-first portfolio project demonstrating REST API design,
 
 ![Laravel 13](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)
 ![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=0b1729)
-![PHP 8.3+](https://img.shields.io/badge/PHP-8.3%2B-777BB4?logo=php&logoColor=white)
+![PHP 8.4+](https://img.shields.io/badge/PHP-8.4%2B-777BB4?logo=php&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES2023-F7DF1E?logo=javascript&logoColor=16120e)
 ![MySQL](https://img.shields.io/badge/MySQL-Compatible-4479A1?logo=mysql&logoColor=white)
 ![Laravel Sanctum](https://img.shields.io/badge/Auth-Laravel%20Sanctum-FF2D20)
@@ -113,7 +113,7 @@ The React client sends JSON requests with credentials. Laravel validates and aut
 | Build tooling | Vite 8 | Development server and production build |
 | Styling | Modern CSS | Design tokens, responsive layouts, themes, and motion |
 | Backend | Laravel 13 | REST API and application architecture |
-| Language | PHP 8.3+ | Backend runtime |
+| Language | PHP 8.4+ | Backend runtime |
 | Authentication | Laravel Sanctum 4 | Stateful SPA authentication and CSRF |
 | Persistence | MySQL | Relational commerce data |
 | ORM | Eloquent | Models, relationships, scopes, and transactions |
@@ -205,7 +205,7 @@ Full API reference: [docs/API.md](docs/API.md)
 - Coupon `BIENVENUE10` for 10% off orders of at least 100 MAD
 - One customer and one administrator account
 
-Seeded product images currently use external Unsplash URLs with `disk = external`. The public storefront reads those URLs correctly, but no `external` Laravel filesystem disk is configured. Consequently, the admin image resource requires a compatibility fix before a complete seeded-image administration demo.
+Seeded product images use external Unsplash URLs with `disk = external`. The storefront and admin API return those URLs directly, while uploaded product images continue to use Laravel's `public` disk.
 
 ## Demo Accounts
 
@@ -220,7 +220,7 @@ Seeded product images currently use external Unsplash URLs with `disk = external
 
 ### Requirements
 
-- PHP 8.3+
+- PHP 8.4+
 - Composer
 - Node.js and npm
 - MySQL-compatible database
@@ -291,7 +291,7 @@ Validation performed before publication:
 | Check | Result |
 |---|---|
 | Laravel routes | 77 total / 76 API routes |
-| PHPUnit | 200 tests / 974 assertions passing |
+| PHPUnit | 201 tests / 979 assertions passing |
 | Laravel Pint | Passing |
 | ESLint | Passing |
 | Vite production build | Passing |
@@ -343,7 +343,6 @@ Detailed deployment guide: [docs/DEPLOYMENT_DEMO.md](docs/DEPLOYMENT_DEMO.md)
 - Build the complete React administration CRUD
 - Add automated frontend component and end-to-end tests
 - Perform a complete accessibility audit
-- Resolve the seeded external-image disk compatibility issue
 - Deploy the public portfolio demo
 
 ## Documentation
