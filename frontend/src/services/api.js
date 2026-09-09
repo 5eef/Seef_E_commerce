@@ -1,6 +1,18 @@
 const API_BASE = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '')
 const BACKEND_BASE = API_BASE.replace(/\/api$/, '')
 
+function cookie(name) {
+  if (typeof document === 'undefined') return null
+
+  const prefix = `${name}=`
+  const value = document.cookie
+    .split('; ')
+    .find((entry) => entry.startsWith(prefix))
+    ?.slice(prefix.length)
+
+  return value ? decodeURIComponent(value) : null
+}
+
 export class ApiError extends Error {
   constructor(message, status, errors = {}) {
     super(message)
@@ -35,6 +47,9 @@ async function request(path, options = {}) {
   if (options.body && !(options.body instanceof FormData)) {
     headers.set('Content-Type', 'application/json')
   }
+
+  const xsrfToken = cookie('XSRF-TOKEN')
+  if (xsrfToken) headers.set('X-XSRF-TOKEN', xsrfToken)
 
   try {
     const response = await fetch(`${API_BASE}${path}`, {

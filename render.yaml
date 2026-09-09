@@ -1,0 +1,51 @@
+services:
+  - type: web
+    name: seef-ecommerce-api-5eef
+    runtime: docker
+    plan: free
+    region: frankfurt
+    repo: https://github.com/5eef/Seef_E_commerce
+    branch: main
+    autoDeployTrigger: commit
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /up
+    envVars:
+      - key: APP_NAME
+        value: Seef E-commerce
+      - key: APP_ENV
+        value: production
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_DEBUG
+        value: false
+      - key: APP_URL
+        value: https://seef-ecommerce-api-5eef.onrender.com
+      - key: FRONTEND_URL
+        value: https://seef-ecommerce-5eef.pages.dev
+      - key: SANCTUM_STATEFUL_DOMAINS
+        value: seef-ecommerce-5eef.pages.dev
+      - key: SESSION_SECURE_COOKIE
+        value: true
+      - key: SESSION_SAME_SITE
+        value: lax
+      - key: DB_CONNECTION
+        value: sqlite
+      - key: DB_DATABASE
+        value: /var/www/html/database/database.sqlite
+      - key: CACHE_STORE
+        value: database
+      - key: SESSION_DRIVER
+        value: database
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: FILESYSTEM_DISK
+        value: local
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: warning
+      - key: SEED_DEMO_DATA
+        value: true
+      - key: PORT
+        value: 8000

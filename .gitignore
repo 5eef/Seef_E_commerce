@@ -8,6 +8,7 @@
 # environnements/outils locaux
 .docxvenv/
 .tools/
+.wrangler/
 
 # configurations locales des assistants de développement
 backend/.agents/
