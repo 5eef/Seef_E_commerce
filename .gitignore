@@ -1,0 +1,56 @@
+# Environnement - secrets
+
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# environnements/outils locaux
+.docxvenv/
+
+# configurations locales des assistants de développement
+backend/.agents/
+backend/.claude/
+backend/.codex/
+backend/.mcp.json
+backend/AGENTS.md
+backend/CLAUDE.md
+
+# sauvegardes locales
+*.bak
+
+
+
+#dépendances backend 
+
+vendor/
+
+
+# dépendances frontend 
+
+node_modules/
+
+
+#logs  
+
+
+storage/logs/*.log 
+*.log 
+
+
+# fichiers temporaires 
+
+
+.DS_Store 
+thumbs.db
+
+
+#Build frontend ( si vous générez un dossier dist ) 
+
+frontend/dist/
+frontend/build/
+
+
+#Fichiers de configuration locaux 
+.phpunit.resulta.cache
+.php-cs-fixer.cache 

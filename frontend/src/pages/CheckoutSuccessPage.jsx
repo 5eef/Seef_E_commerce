@@ -1,0 +1,2 @@
+import { Link, useSearchParams } from 'react-router-dom'
+export function CheckoutSuccessPage() { const [params] = useSearchParams(); return <section className="form-page"><div className="panel success"><p className="eyebrow">Commande enregistrée</p><h1>Merci.</h1><p>Votre commande <strong>{params.get('order')}</strong> a bien été créée. Le paiement reste en attente jusqu’à confirmation.</p><Link className="button" to="/account/orders">Voir mes commandes</Link></div></section> }
