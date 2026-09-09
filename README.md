@@ -14,13 +14,14 @@ Seef E-commerce is an API-first portfolio project demonstrating REST API design,
 
 ## Live Demo
 
-Deployment in progress.
-
-- Storefront: deployment in progress
-- Admin demo: deployment in progress
-- API health endpoint: deployment in progress
+- [Storefront on Cloudflare Pages](https://seef-ecommerce-5eef.pages.dev/)
+- [Admin demo](https://seef-ecommerce-5eef.pages.dev/admin)
+- [API health endpoint on Render](https://seef-ecommerce-api-5eef.onrender.com/up)
+- [Public products API](https://seef-ecommerce-5eef.pages.dev/api/products)
 - [Figma design](https://www.figma.com/make/Ws3iRp8Gy7gfcv0BQiKxOs/Ecommerce-store-design-model?t=ICyVwlBLiHwf3BQ3-20&fullscreen=1)
 - [Public Figma site](https://ide-mural-42346251.figma.site/)
+
+The free Render backend may need a short warm-up after inactivity. The catalogue and demo accounts are restored automatically whenever the ephemeral preview database is recreated.
 
 ## Project Overview
 
@@ -321,18 +322,21 @@ No placeholder image is referenced, so the README remains clean until real scree
 
 ## Deployment
 
-The planned portfolio architecture is:
+The public portfolio architecture is:
 
 ```mermaid
 flowchart LR
-    GitHub[GitHub repository] --> Koyeb[Koyeb free web service]
-    Koyeb --> Laravel[Laravel API]
-    Koyeb --> React[React production build]
-    Laravel --> Preview[(SQLite free preview)]
-    Laravel -. persistent target .-> TiDB[(TiDB Cloud Starter)]
+    GitHub[GitHub repository] --> Render[Render free web service]
+    GitHub --> Pages[Cloudflare Pages]
+    Browser[Browser] --> Pages
+    Pages --> React[React production build]
+    Pages --> Proxy[Pages Functions proxy]
+    Proxy --> Render
+    Render --> Laravel[Laravel API]
+    Laravel --> Preview[(Ephemeral SQLite preview)]
 ```
 
-Koyeb's free service is intended for portfolio demonstration only. The initial SQLite preview and local uploads are not persistent on a free instance without a volume; idempotent seeders restore the catalogue and demo accounts, while TiDB remains the persistent database target.
+Cloudflare Pages serves the React SPA and proxies `/api` and `/sanctum` to Render so Sanctum authentication remains same-origin in the browser. Render runs the root Docker image and Laravel API. The free SQLite database and local uploads are not persistent; idempotent seeders restore the catalogue and demo accounts after a cold restart.
 
 Detailed deployment guide: [docs/DEPLOYMENT_DEMO.md](docs/DEPLOYMENT_DEMO.md)
 
@@ -344,7 +348,6 @@ Detailed deployment guide: [docs/DEPLOYMENT_DEMO.md](docs/DEPLOYMENT_DEMO.md)
 - Build the complete React administration CRUD
 - Add automated frontend component and end-to-end tests
 - Perform a complete accessibility audit
-- Deploy the public portfolio demo
 
 ## Documentation
 

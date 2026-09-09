@@ -1,178 +1,102 @@
 # Demo Deployment Guide
 
-This guide covers an immediately usable free preview and the persistent portfolio target. Only put a public URL in the README after its health, catalogue, and authentication smoke tests pass.
+The public demo is deployed with Cloudflare Pages for the React frontend and Render for the Laravel backend.
 
-## Target Architecture
+- Storefront: <https://seef-ecommerce-5eef.pages.dev/>
+- Render API: <https://seef-ecommerce-api-5eef.onrender.com/>
+- Render healthcheck: <https://seef-ecommerce-api-5eef.onrender.com/up>
+
+## Architecture
 
 ```mermaid
 flowchart LR
-    GitHub[GitHub · main branch] --> Koyeb[Koyeb web service]
-    Koyeb --> Laravel[Laravel REST API]
-    Koyeb --> React[React production assets]
-    Laravel --> Preview[(Ephemeral SQLite preview)]
-    Laravel -. persistent target .-> TiDB[(TiDB Cloud Starter)]
+    Browser[Browser] --> Pages[Cloudflare Pages]
+    Pages --> React[React SPA]
+    Pages --> Functions[Pages Functions]
+    Functions -->|/api and /sanctum| Render[Render Docker service]
+    Render --> Laravel[Laravel REST API]
+    Laravel --> SQLite[(Ephemeral SQLite demo)]
+    GitHub[5eef/Seef_E_commerce] --> Render
 ```
 
-The repository is a monorepo with `backend/` and `frontend/`. Koyeb supports selecting a work directory for monorepos. The included root `Dockerfile` implements the single-service option:
+The Pages Functions proxy keeps browser requests on the storefront origin. This avoids cross-site cookie problems for Laravel Sanctum: `/api/*` and `/sanctum/*` are forwarded server-side to Render, while the SPA uses the relative API base `/api`.
 
-1. Node builds the React SPA with the same-origin API base `/api`;
-2. Composer installs production PHP dependencies;
-3. Apache serves the React assets and forwards Laravel/API requests;
-4. the entrypoint migrates the database and optionally loads demo seed data.
+## Render Backend
 
-This approach uses a single free Koyeb Web Service. The alternative is to deploy Laravel from `backend/` and host React as a separate static service.
+The root `Dockerfile` builds the React assets and Laravel application. `render.yaml` defines the free Docker web service, healthcheck, port, SQLite preview, session settings, and demo seeding.
 
-## 1. Choose the Database Mode
-
-### Immediate free preview
-
-The container can start without an external database. Configure these variables for a zero-cost first deployment:
+Required production values include:
 
 ```dotenv
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://seef-ecommerce-api-5eef.onrender.com
+FRONTEND_URL=https://seef-ecommerce-5eef.pages.dev
+SANCTUM_STATEFUL_DOMAINS=seef-ecommerce-5eef.pages.dev
+SESSION_SECURE_COOKIE=true
+SESSION_SAME_SITE=lax
 DB_CONNECTION=sqlite
 DB_DATABASE=/var/www/html/database/database.sqlite
 CACHE_STORE=database
 SESSION_DRIVER=database
 QUEUE_CONNECTION=sync
 SEED_DEMO_DATA=true
+PORT=8000
 ```
 
-The entrypoint creates the SQLite file, runs migrations, and loads the idempotent demo seeders. This makes the catalogue and both demo accounts usable immediately. Koyeb free-instance storage is ephemeral, so catalogue or account changes made through the demo can be lost after a restart or rescheduling; the seed data is recreated at the next start.
-
-### Persistent TiDB Cloud target
-
-1. Create a TiDB Cloud Starter instance.
-2. Create a dedicated database for Seef.
-3. Generate a database password and store it in a password manager.
-4. Open the instance connection dialog and copy the public host, port, username, and database name.
-5. Configure a TLS connection. TiDB Cloud Starter requires TLS for standard public connections.
-
-Laravel already maps `MYSQL_ATTR_SSL_CA` to PDO's MySQL TLS option in `backend/config/database.php`.
-
-Typical Koyeb database variables:
-
-```dotenv
-DB_CONNECTION=mysql
-DB_HOST=<tidb-host>
-DB_PORT=4000
-DB_DATABASE=<database>
-DB_USERNAME=<username-with-instance-prefix>
-DB_PASSWORD=<secret>
-MYSQL_ATTR_SSL_CA=/etc/ssl/certs/ca-certificates.crt
-```
-
-Use the actual CA bundle path available in the selected runtime image. Do not copy database credentials into GitHub or the repository.
+`APP_KEY` is configured only in Render and must never be committed. The entrypoint runs production migrations and the idempotent demo seeder when the container starts.
 
 Official references:
 
-- [Create a TiDB Cloud Starter instance](https://docs.pingcap.com/tidbcloud/create-tidb-cluster-serverless/?plan=starter)
-- [Connect to TiDB Cloud Starter](https://docs.pingcap.com/tidbcloud/connect-to-tidb-cluster-serverless/?plan=starter)
-- [TLS connections for Starter](https://docs.pingcap.com/tidbcloud/secure-connections-to-serverless-clusters/)
+- [Render Docker deployments](https://render.com/docs/docker)
+- [Render web services](https://render.com/docs/web-services)
+- [Render Blueprint specification](https://render.com/docs/blueprint-spec)
 
-## 2. Prepare the Koyeb Service
+## Cloudflare Frontend
 
-1. Connect Koyeb to the GitHub account `5eef`.
-2. Select the `5eef/Seef_E_commerce` repository and the `main` branch.
-3. Choose a Git-driven deployment with the root `Dockerfile` builder.
-4. Select a free Web Service only for the portfolio demo.
-5. Keep the repository root as the work directory and expose HTTP port `8000`.
-6. Disable automatic production deployment until the first staging build is validated.
-
-Official references:
-
-- [Deploy from GitHub](https://www.koyeb.com/docs/build-and-deploy/deploy-with-git)
-- [Koyeb monorepo work directories](https://www.koyeb.com/docs/build-and-deploy/monorepo)
-- [Deploy a PHP application](https://www.koyeb.com/docs/deploy/php)
-
-## 3. Configure Laravel
-
-Set secrets and environment-specific values in the Koyeb service configuration:
-
-```dotenv
-APP_NAME="Seef E-commerce"
-APP_ENV=production
-APP_KEY=<generated-production-key>
-APP_DEBUG=false
-APP_URL=https://<public-domain>
-
-FRONTEND_URL=https://<storefront-domain>
-SANCTUM_STATEFUL_DOMAINS=<storefront-domain>
-SESSION_SECURE_COOKIE=true
-
-LOG_CHANNEL=stderr
-CACHE_STORE=database
-SESSION_DRIVER=database
-QUEUE_CONNECTION=sync
-FILESYSTEM_DISK=local
-SEED_DEMO_DATA=true
-```
-
-Generate `APP_KEY` locally without publishing it:
+The Cloudflare Pages project is `seef-ecommerce-5eef`. Build and deploy it from `frontend/`:
 
 ```powershell
-php artisan key:generate --show
-```
-
-For the immediate preview, add the SQLite variables from section 1. For a persistent deployment, add the TiDB variables as Koyeb secrets instead.
-
-## 4. Configure React
-
-The production build requires the public Laravel API URL:
-
-```dotenv
-VITE_API_URL=https://<api-domain>/api
-```
-
-Run the frontend quality checks before packaging:
-
-```powershell
-cd frontend
 npm ci
 npm run lint
 npm run build
+npx wrangler pages deploy dist --project-name seef-ecommerce-5eef --branch main
 ```
 
-`VITE_*` values are embedded at build time. Changing `VITE_API_URL` requires a new frontend build.
+Set this Pages production variable before deployment:
 
-## 5. Release Commands
-
-Run database migrations as a controlled release command:
-
-```powershell
-php artisan migrate --force
-php artisan optimize
+```dotenv
+BACKEND_URL=https://seef-ecommerce-api-5eef.onrender.com
 ```
 
-Seed demo data only in the portfolio environment:
+The proxy implementation lives in `frontend/functions/`. The SPA fallback is handled by Pages, so client routes such as `/shop`, `/cart`, and `/admin` load `index.html` directly.
 
-```powershell
-php artisan db:seed --force
-```
+Official references:
 
-Do not run `migrate:fresh` against a shared or production database.
+- [Deploy a React site to Cloudflare Pages](https://developers.cloudflare.com/pages/framework-guides/deploy-a-react-site/)
+- [Pages Functions routing](https://developers.cloudflare.com/pages/functions/routing/)
+- [Pages Functions bindings](https://developers.cloudflare.com/pages/functions/bindings/)
+- [Serving Pages and SPA fallback](https://developers.cloudflare.com/pages/configuration/serving-pages/)
 
-## 6. Smoke Tests
+## Verified Smoke Tests
 
-After deployment, verify:
+The public deployment was checked after release:
 
-- `GET /up` returns a successful health response.
-- `GET /api/products` returns the seeded catalogue.
-- the storefront can request `/sanctum/csrf-cookie`.
-- customer and administrator demo accounts can sign in.
-- guest cart, cart merge, wishlist, and address ownership work.
-- checkout creates a pending payment and decreases stock once.
-- customer and administrator routes reject unauthorized access.
-- CORS accepts only the exact storefront origin.
-- `APP_DEBUG` is disabled.
+- storefront: HTTP 200;
+- Render `/up`: HTTP 200;
+- proxied `/api/products`: HTTP 200 with 12 seeded products;
+- `/sanctum/csrf-cookie`: HTTP 204;
+- customer login and authenticated `/api/auth/me`: HTTP 200;
+- administrator login and `/api/admin/dashboard`: HTTP 200.
 
-## Storage Limitation
+Demo credentials are documented in the root README.
 
-Koyeb free instances use ephemeral local storage and cannot attach a persistent volume. The preview SQLite database and product uploads stored on the local `public` disk can disappear after a restart or rescheduling. The idempotent seeders restore the public catalogue and demo accounts, while external seeded images remain available. Use TiDB and object storage when persistence is required.
+## Free-tier Limitations
 
-See [Koyeb instance limitations](https://www.koyeb.com/docs/reference/instances) and [Koyeb volume limitations](https://www.koyeb.com/docs/reference/volumes).
+The Render free web service can spin down after inactivity, so the first request may take longer. Its filesystem is ephemeral: SQLite changes and locally uploaded files can disappear after a restart or spin-down. The seeders recreate the catalogue and demo accounts, but this deployment must not be treated as persistent production storage.
 
-## Known Pre-deployment Work
+See [Render free service limitations](https://render.com/docs/free). For persistent use, replace SQLite with a managed database and store uploads in object storage.
 
-- Configure object storage for persistent uploads.
-- Add a real payment gateway only with signed, idempotent webhooks.
-- Add production monitoring, backups, and an explicit rollback procedure.
+## Future Releases
+
+Render redeploys from the public GitHub repository. Cloudflare Pages is currently a Wrangler Direct Upload project, so publish new frontend builds with the command above. Before every release, run the backend tests, ESLint, the Vite build, and the public authentication smoke tests.
