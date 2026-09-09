@@ -12,7 +12,12 @@ RUN npm run build
 FROM composer:2 AS php-dependencies
 WORKDIR /build/backend
 COPY backend/composer.json backend/composer.lock ./
-RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --no-scripts
+RUN set -e; \
+    for wait_seconds in 0 15 30; do \
+        if [ "$wait_seconds" -gt 0 ]; then sleep "$wait_seconds"; fi; \
+        if composer install --no-dev --prefer-dist --no-interaction --no-progress --no-scripts; then exit 0; fi; \
+    done; \
+    exit 1
 
 FROM php:8.4-apache AS runtime
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
