@@ -176,7 +176,7 @@ Real payment processing is **not enabled** in the portfolio demo. Payment record
 
 ## API
 
-The current application exposes 77 Laravel routes, including 76 routes under `/api`.
+The current application exposes 78 Laravel routes, including 77 routes under `/api`.
 
 Representative endpoints:
 
@@ -284,6 +284,8 @@ Run the frontend checks:
 ```powershell
 cd frontend
 npm run lint
+npm run test:run
+npm run test:coverage
 npm run build
 ```
 
@@ -291,11 +293,16 @@ Validation performed before publication:
 
 | Check | Result |
 |---|---|
-| Laravel routes | 77 total / 76 API routes |
-| PHPUnit | 201 tests / 979 assertions passing |
+| Laravel routes | 78 total / 77 API routes |
+| PHPUnit | 202 tests / 984 assertions passing |
+| Vitest | 18 tests passing |
+| Frontend coverage | 79.66% lines on the targeted test scope |
 | Laravel Pint | Passing |
 | ESLint | Passing |
 | Vite production build | Passing |
+| Composer / npm production audit | 0 known vulnerabilities |
+| Docker release build and smoke test | Passing |
+| Gitleaks | No leaks found |
 
 ## UI/UX & Figma
 
@@ -340,13 +347,25 @@ Cloudflare Pages serves the React SPA and proxies `/api` and `/sanctum` to Rende
 
 Detailed deployment guide: [docs/DEPLOYMENT_DEMO.md](docs/DEPLOYMENT_DEMO.md)
 
+## CI/CD
+
+Pull requests, pushes to `main`, and manual dispatches run `.github/workflows/ci.yml`. Separate jobs validate the Laravel application against MySQL, lint/test/build the React application, scan Git history for secrets, and build the release container. Actions are pinned to exact release commits and the workflow has read-only repository permissions.
+
+```text
+push / pull request -> GitHub Actions -> backend + frontend + security/container
+main                -> existing Render auto-deploy
+validated build     -> existing Cloudflare Pages direct-upload release process
+```
+
+The workflow does not create or replace Render, Cloudflare Pages, databases, or domains.
+
 ## Roadmap
 
 - Integrate a real payment gateway with signed, idempotent webhooks
 - Complete returns and refunds
 - Add advanced shipment and delivery management
 - Build the complete React administration CRUD
-- Add automated frontend component and end-to-end tests
+- Expand frontend component coverage and add focused end-to-end tests
 - Perform a complete accessibility audit
 
 ## Documentation

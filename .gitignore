@@ -11,6 +11,8 @@
 .docxvenv/
 .tools/
 .wrangler/
+.sonarlint/
+.vscode/
 
 # configurations locales des assistants de développement
 backend/.agents/
@@ -53,6 +55,7 @@ thumbs.db
 
 frontend/dist/
 frontend/build/
+frontend/coverage/
 
 
 #Fichiers de configuration locaux 

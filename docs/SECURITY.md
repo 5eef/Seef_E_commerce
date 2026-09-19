@@ -12,6 +12,7 @@
 - checkout sous transaction et `lockForUpdate` sur panier, coupon et inventaire
 - prix et remises recalculés côté serveur; stock négatif refusé
 - unicité DB sur wishlist, avis, coupons, SKU, panier/variante et usage coupon/commande
+- CI avec permissions `contents: read`, Actions épinglées sur des SHA et scan Gitleaks de l'historique
 
 ## Paiements
 
@@ -23,6 +24,7 @@ Aucun prestataire bancaire n’est configuré. Toute méthode crée un paiement 
 - `.env.example` ne contient que des valeurs fictives.
 - PHPUnit doit utiliser exclusivement MySQL `ecommerce_testing`.
 - Ne jamais lancer `migrate:fresh` sur `ecommerce` ou une base non explicitement jetable.
+- La CI utilise un service MySQL isolé nommé `ecommerce_testing`; elle ne contacte aucune base de production.
 
 ## Limites connues
 

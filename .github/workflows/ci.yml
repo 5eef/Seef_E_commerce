@@ -1,0 +1,140 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: seef-ecommerce-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: ecommerce_testing
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --host=127.0.0.1 --user=root --password=root"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: ecommerce_testing
+      DB_USERNAME: root
+      DB_PASSWORD: root
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.4'
+          extensions: bcmath, mbstring, pdo_mysql
+          coverage: none
+          tools: composer:v2
+
+      - name: Resolve Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer downloads
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-php-8.4-composer-${{ hashFiles('backend/composer.lock') }}
+          restore-keys: ${{ runner.os }}-php-8.4-composer-
+
+      - name: Validate Composer metadata
+        run: composer validate --strict
+
+      - name: Install backend dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Audit backend dependencies
+        run: composer audit --locked
+
+      - name: Prepare test environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run Laravel tests
+        run: php artisan test --compact
+
+      - name: Check PHP formatting
+        run: vendor/bin/pint --test
+
+      - name: Validate route registration
+        run: php artisan route:list --except-vendor
+
+  frontend:
+    name: Frontend quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev
+
+      - name: Lint frontend
+        run: npm run lint
+
+      - name: Run frontend unit tests
+        run: npm run test:run
+
+      - name: Build frontend
+        run: npm run build
+
+  security-container:
+    name: Security and container
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Scan repository for secrets
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build release container
+        run: docker build --tag seef-ecommerce:ci .

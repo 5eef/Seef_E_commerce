@@ -99,4 +99,12 @@ See [Render free service limitations](https://render.com/docs/free). For persist
 
 ## Future Releases
 
-Render redeploys from the public GitHub repository. Cloudflare Pages is currently a Wrangler Direct Upload project, so publish new frontend builds with the command above. Before every release, run the backend tests, ESLint, the Vite build, and the public authentication smoke tests.
+Pull requests and pushes to `main` first run the GitHub Actions workflow: Laravel tests and formatting, frontend lint/tests/build, dependency audits, Gitleaks, and a release-container build. Render then redeploys `main` from the public GitHub repository. Cloudflare Pages remains the existing Wrangler Direct Upload project, so publish the validated frontend build with the command above; no second Pages project or deployment system is introduced.
+
+```text
+push / pull request -> GitHub Actions quality gates
+main                -> existing Render auto-deploy
+validated frontend  -> existing Cloudflare Pages direct upload
+```
+
+After every release, repeat the non-destructive public health, catalogue, asset, navigation, and authentication smoke tests.

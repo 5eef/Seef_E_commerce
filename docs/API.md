@@ -8,6 +8,7 @@ Base locale Seef : `http://localhost:8017/api`. Les réponses sont JSON. Les rou
 | POST | `/auth/login` | Non | Visiteur | Ouvrir une session |
 | POST | `/auth/forgot-password` | Non | Visiteur | Demander un lien de réinitialisation |
 | POST | `/auth/reset-password` | Non | Visiteur | Réinitialiser le mot de passe |
+| GET | `/auth/session` | Non | Public | Lire la session courante sans transformer une absence de session en erreur |
 | GET | `/auth/me` | Oui | Actif | Utilisateur courant |
 | POST | `/auth/logout` | Oui | Actif | Fermer la session |
 | GET | `/categories` | Non | Public | Catégories actives |

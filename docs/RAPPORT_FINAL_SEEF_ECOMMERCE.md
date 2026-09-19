@@ -1,18 +1,16 @@
 # Rapport final — Seef E-commerce
 
-## 1. État initial observé
+## 1. État audité
 
-Le backend contenait un domaine Eloquent complet et des modules déjà validés pour l’authentification, le catalogue, le panier et une grande partie de l’administration. Plusieurs controllers métier restaient des squelettes. Le frontend était le starter Vite/React. Git est sur `main`, sans remote configuré et tous les fichiers du projet sont encore non suivis.
+Le dépôt local est sur `main` et suit `origin/main` du repository `5eef/Seef_E_commerce`. L'application est un projet full-stack fonctionnel: Laravel 13, React 19, Sanctum, MySQL pour les tests et SQLite éphémère pour la démonstration Render. Le backend métier, la SPA, le Dockerfile, Render et Cloudflare Pages étaient déjà en place; la CI GitHub Actions et les tests frontend manquaient.
 
-## 2. Problèmes détectés
+## 2. Problèmes détectés lors de l'audit correctif
 
-- Wishlist, adresses, checkout, commandes client, coupons, inventaire, avis et dashboard absents ou non routés
-- six tests panier en échec car Laravel 13 n’envoyait pas les cookies dans les requêtes JSON du client de test sans credentials
-- adoption d’un panier invité contenant uniquement une variante devenue indisponible
-- filtre catalogue utilisant `$request->all()` au lieu des données validées
-- factories et seeders métier largement vides
-- frontend non fonctionnel et aucune connexion API
-- aucune documentation finale du projet
+- absence de `.github/workflows` et de contrôles automatisés sur push/PR;
+- absence de framework et de tests unitaires frontend déclarés;
+- panier React non resynchronisé après la fusion serveur déclenchée par une connexion, une inscription ou une déconnexion;
+- nombres de routes, tests et assertions obsolètes dans la documentation;
+- absence de scan automatisé de secrets et de build Docker en CI.
 
 ## 3. Corrections effectuées
 
@@ -23,6 +21,9 @@ Le backend contenait un domaine Eloquent complet et des modules déjà validés 
 - client React centralisé, providers auth/panier, routes protégées et états d’erreur
 - design system et écrans publics dérivés du site Figma public
 - seeders catalogue/coupons/comptes de démonstration et factories principales
+- synchronisation du panier sur chaque changement d'identité;
+- suite Vitest/Testing Library ciblant client API, auth, panier, routes protégées et menus;
+- CI en trois jobs avec MySQL, audits, tests, lint, Pint, Gitleaks et build Docker.
 
 ## 4. Fonctionnalités backend terminées
 
@@ -38,7 +39,7 @@ Les tokens exacts du site public Figma sont dans `frontend/src/index.css`. Le he
 
 ## 7. Endpoints finaux
 
-Voir `docs/API.md`. Le projet expose 77 routes applicatives lors du dernier audit de routes.
+Voir `docs/API.md`. Le projet expose 78 routes applicatives, dont 77 sous `/api`, lors du dernier audit de routes.
 
 ## 8. Migrations modifiées/ajoutées
 
@@ -50,21 +51,24 @@ Sanctum, CSRF, CORS avec credentials, rate limiting, FormRequests, Policies, Res
 
 ## 10. Tests
 
-Une suite ciblée de 8 tests / 46 assertions couvre les nouvelles fonctions principales. La suite complète passe avec 201 tests et 979 assertions.
+La suite backend complète passe avec 202 tests et 984 assertions. La suite frontend passe avec 18 tests répartis dans 6 fichiers; la couverture ciblée atteint 79,66 % des lignes.
 
 ## 11. Commandes exécutées
 
-`composer require laravel/boost --dev`, `php artisan boost:install`, `php artisan route:list`, `php artisan migrate:status`, `php artisan test --compact`, tests ciblés, `vendor/bin/pint --test`, `composer validate --no-check-publish`, `composer audit`, `npm install react-router-dom`, `npm run lint`, `npm run build` et `npm audit --omit=dev`.
+`composer validate --strict`, `composer install`, `composer audit`, `php artisan test --compact`, `vendor/bin/pint --test`, `php artisan route:list --except-vendor`, `npm ci`, `npm run lint`, `npm run test:run`, `npm run test:coverage`, `npm run build`, `npm audit --omit=dev`, build/smoke test Docker et Gitleaks.
 
 ## 12. Résultats
 
-- Tests backend ciblés : **PASS — 7 tests, 41 assertions**
-- Suite backend complète : **PASS — 201 tests, 979 assertions**
+- Suite backend complète : **PASS — 202 tests, 984 assertions**
+- Tests frontend : **PASS — 18 tests dans 6 fichiers**
+- Couverture frontend ciblée : **79,66 % des lignes**
 - Build frontend : **PASS**
 - ESLint frontend : **PASS**
 - Laravel Pint : **PASS**
 - Composer validate/audit : **PASS — aucun avis de sécurité**
 - npm audit production : **PASS — 0 vulnérabilité**
+- Docker build/smoke test : **PASS — `/`, `/up` et `/api/products` en HTTP 200**
+- Gitleaks : **PASS — aucun secret détecté**
 
 ## 13. Limitations restantes
 
@@ -73,7 +77,6 @@ Une suite ciblée de 8 tests / 46 assertions couvre les nouvelles fonctions prin
 - frontend admin limité au dashboard; les APIs de gestion sont disponibles mais toutes les vues CRUD ne sont pas encore réalisées
 - connecteur du fichier Figma Make inaccessible faute de droit éditeur; inspection fondée sur le site public fourni
 - rendu visuel des DOCX impossible sans LibreOffice; contenu lu structurellement sans modifier les originaux
-- plusieurs factories secondaires restent des squelettes
 
 ## 14. Recommandations de déploiement
 
