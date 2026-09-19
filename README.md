@@ -11,6 +11,7 @@ Seef E-commerce is an API-first portfolio project demonstrating REST API design,
 ![MySQL](https://img.shields.io/badge/MySQL-Compatible-4479A1?logo=mysql&logoColor=white)
 ![Laravel Sanctum](https://img.shields.io/badge/Auth-Laravel%20Sanctum-FF2D20)
 ![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
+[![CI](https://github.com/5eef/Seef_E_commerce/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/5eef/Seef_E_commerce/actions/workflows/ci.yml)
 
 ## Live Demo
 
