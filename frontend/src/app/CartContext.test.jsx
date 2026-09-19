@@ -1,15 +1,29 @@
-import { act, renderHook, waitFor } from '@testing-library/react'
+import { act, render, renderHook, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useCart } from '../hooks/useCart'
 import { api } from '../services/api'
+import { AuthContext } from './auth-context'
 import { CartProvider } from './CartContext'
 
 vi.mock('../services/api', () => ({
   api: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() },
 }))
 
+function TestProviders({ children, authLoading = false }) {
+  return (
+    <AuthContext.Provider value={{ user: null, loading: authLoading }}>
+      <CartProvider>{children}</CartProvider>
+    </AuthContext.Provider>
+  )
+}
+
 function wrapper({ children }) {
-  return <CartProvider>{children}</CartProvider>
+  return <TestProviders>{children}</TestProviders>
+}
+
+function CartStatus() {
+  const { loading } = useCart()
+  return <span>{loading ? 'loading' : 'ready'}</span>
 }
 
 describe('CartProvider', () => {
@@ -28,6 +42,21 @@ describe('CartProvider', () => {
 
     expect(api.get).toHaveBeenCalledWith('/cart')
     expect(result.current.cart).toEqual(refreshed)
+  })
+
+  it('waits for authentication resolution before loading the cart', async () => {
+    const { getByText, rerender } = render(
+      <TestProviders authLoading><CartStatus /></TestProviders>,
+    )
+
+    expect(getByText('loading')).toBeInTheDocument()
+    expect(api.get).not.toHaveBeenCalled()
+
+    rerender(<TestProviders><CartStatus /></TestProviders>)
+
+    await waitFor(() => expect(getByText('ready')).toBeInTheDocument())
+    expect(api.get).toHaveBeenCalledTimes(1)
+    expect(api.get).toHaveBeenCalledWith('/cart')
   })
 
   it('uses API responses as the source of truth for cart mutations', async () => {

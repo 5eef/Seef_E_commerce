@@ -9,6 +9,7 @@ Le dépôt local est sur `main` et suit `origin/main` du repository `5eef/Seef_E
 - absence de `.github/workflows` et de contrôles automatisés sur push/PR;
 - absence de framework et de tests unitaires frontend déclarés;
 - panier React non resynchronisé après la fusion serveur déclenchée par une connexion, une inscription ou une déconnexion;
+- initialisations session/panier concurrentes pouvant verrouiller la base SQLite de démonstration;
 - nombres de routes, tests et assertions obsolètes dans la documentation;
 - absence de scan automatisé de secrets et de build Docker en CI.
 
@@ -22,6 +23,7 @@ Le dépôt local est sur `main` et suit `origin/main` du repository `5eef/Seef_E
 - design system et écrans publics dérivés du site Figma public
 - seeders catalogue/coupons/comptes de démonstration et factories principales
 - synchronisation du panier sur chaque changement d'identité;
+- chargement initial du panier séquencé après la résolution de la session;
 - suite Vitest/Testing Library ciblant client API, auth, panier, routes protégées et menus;
 - CI en trois jobs avec MySQL, audits, tests, lint, Pint, Gitleaks et build Docker.
 
@@ -51,7 +53,7 @@ Sanctum, CSRF, CORS avec credentials, rate limiting, FormRequests, Policies, Res
 
 ## 10. Tests
 
-La suite backend complète passe avec 202 tests et 984 assertions. La suite frontend passe avec 18 tests répartis dans 6 fichiers; la couverture ciblée atteint 79,66 % des lignes.
+La suite backend complète passe avec 202 tests et 984 assertions. La suite frontend passe avec 19 tests répartis dans 6 fichiers; la couverture ciblée atteint 79,88 % des lignes.
 
 ## 11. Commandes exécutées
 
@@ -60,8 +62,8 @@ La suite backend complète passe avec 202 tests et 984 assertions. La suite fron
 ## 12. Résultats
 
 - Suite backend complète : **PASS — 202 tests, 984 assertions**
-- Tests frontend : **PASS — 18 tests dans 6 fichiers**
-- Couverture frontend ciblée : **79,66 % des lignes**
+- Tests frontend : **PASS — 19 tests dans 6 fichiers**
+- Couverture frontend ciblée : **79,88 % des lignes**
 - Build frontend : **PASS**
 - ESLint frontend : **PASS**
 - Laravel Pint : **PASS**

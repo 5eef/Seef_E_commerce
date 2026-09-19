@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useAuth } from '../hooks/useAuth'
 import { api } from '../services/api'
 import { CartContext } from './cart-context'
 
 export function CartProvider({ children }) {
+  const { loading: authLoading } = useAuth()
   const [cart, setCart] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -17,6 +19,8 @@ export function CartProvider({ children }) {
   }, [])
 
   useEffect(() => {
+    if (authLoading) return undefined
+
     let active = true
     api.get('/cart')
       .then((payload) => active && setCart(payload.data))
@@ -24,7 +28,7 @@ export function CartProvider({ children }) {
       .finally(() => active && setLoading(false))
 
     return () => { active = false }
-  }, [])
+  }, [authLoading])
 
   const value = useMemo(() => ({
     cart,

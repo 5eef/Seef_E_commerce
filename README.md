@@ -296,8 +296,8 @@ Validation performed before publication:
 |---|---|
 | Laravel routes | 78 total / 77 API routes |
 | PHPUnit | 202 tests / 984 assertions passing |
-| Vitest | 18 tests passing |
-| Frontend coverage | 79.66% lines on the targeted test scope |
+| Vitest | 19 tests passing |
+| Frontend coverage | 79.88% lines on the targeted test scope |
 | Laravel Pint | Passing |
 | ESLint | Passing |
 | Vite production build | Passing |
