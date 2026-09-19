@@ -108,11 +108,36 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
+      - name: Use the lockfile-compatible npm release
+        run: npm install --global npm@11.19.0
+
       - name: Install frontend dependencies
         run: npm ci
 
       - name: Audit production dependencies
-        run: npm audit --omit=dev
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            set +e
+            audit_output="$(npm audit --omit=dev --json 2>&1)"
+            audit_status=$?
+            set -e
+            printf '%s\n' "$audit_output"
+
+            if [ "$audit_status" -eq 0 ]; then
+              exit 0
+            fi
+
+            if [[ "$audit_output" == *'"auditReportVersion"'* ]]; then
+              exit "$audit_status"
+            fi
+
+            if [ "$attempt" -lt 3 ]; then
+              sleep 10
+            fi
+          done
+
+          echo "::warning::npm registry audit endpoint unavailable after 3 attempts; dependency installation, Gitleaks, and the container checks still ran."
 
       - name: Lint frontend
         run: npm run lint
